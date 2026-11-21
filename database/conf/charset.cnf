@@ -1,0 +1,11 @@
+# Fuerza UTF-8 en el servidor y en el cliente que ejecuta los scripts de
+# database/init (sin esto, las tildes y el símbolo ° se guardan corruptos).
+[mysqld]
+character-set-server = utf8mb4
+collation-server = utf8mb4_spanish_ci
+
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4

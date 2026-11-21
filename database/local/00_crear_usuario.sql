@@ -1,0 +1,14 @@
+-- =========================================================================
+-- USUARIO DE APLICACIÓN
+-- Crea un usuario de MySQL dedicado para que el aplicativo Python se
+-- conecte (en vez de usar la cuenta root). Ejecuta este script UNA SOLA
+-- VEZ, conectada como root (o el usuario administrador que uses en
+-- MySQL Workbench), antes de correr main.py.
+--
+-- Si prefieres usar otro usuario/contraseña, cámbialos aquí Y en
+-- db.py (diccionario CONFIG).
+-- =========================================================================
+
+CREATE USER IF NOT EXISTS 'app_horarios'@'localhost' IDENTIFIED BY 'horarios2026';
+GRANT ALL PRIVILEGES ON bd_horarios_esclavas.* TO 'app_horarios'@'localhost';
+FLUSH PRIVILEGES;
