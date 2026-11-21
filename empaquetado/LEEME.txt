@@ -1,0 +1,38 @@
+SISTEMA DE ASIGNACIÓN DE HORARIOS Y CARGA ACADÉMICA
+Colegio Particular Esclavas del Sagrado Corazón de Jesús
+=========================================================
+
+CÓMO USARLO (no hay que instalar nada)
+
+  1. Descomprime el archivo .zip (clic derecho > "Extraer todo...").
+     No lo ejecutes desde dentro del .zip.
+  2. Abre la carpeta y haz doble clic en  Iniciar  (Iniciar.bat)
+  3. Se abrirá el sistema en el navegador.
+     La primera vez tarda 1 o 2 minutos porque crea la base de datos.
+
+  Mientras uses el sistema, deja abierta la ventana negra.
+  Para salir, simplemente cierra esa ventana.
+
+
+SI WINDOWS MUESTRA UN AVISO AL ABRIR
+
+  Todos los programas incluidos (Python, MySQL) tienen firma digital
+  oficial. Si aun así aparece "Windows protegió tu PC", haz clic en
+  "Más información" y luego en "Ejecutar de todas formas".
+
+
+QUÉ CONTIENE ESTA CARPETA
+
+  Iniciar.bat        Doble clic aquí para abrir el sistema.
+  python\            Python portátil (no se instala en el equipo).
+  app\               Código del sistema.
+  mysql\             Servidor MySQL portátil (no se instala en el equipo).
+  database\init\     Scripts SQL: esquema, procedimientos, triggers,
+                     datos de prueba y reportes.
+  datos\             Se crea al primer inicio: aquí se guarda la base.
+
+  Para volver a los datos de prueba originales: cierra el sistema,
+  borra la carpeta "datos" y vuelve a abrir Iniciar.
+
+  Sugerencia: en "Horarios", elige la sección "3° Primaria - A" para ver
+  un horario semanal completo.

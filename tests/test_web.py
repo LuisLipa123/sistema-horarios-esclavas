@@ -111,3 +111,12 @@ def test_pagina_horarios_dibuja_grilla():
     html = get(construir_web(gateway), "/horarios", seccion="5").cuerpo
     assert "3° Primaria - A (ID 5)" in html
     assert "<th>Miércoles</th>" in html and "Matemática" in html and "<td>08:00<br>08:45</td>" in html
+
+
+def test_grilla_muestra_solo_el_ultimo_periodo():
+    columnas = ["Periodo", *HORARIO_SECCION.columnas]
+    filas = [(2026, *f) for f in HORARIO_SECCION.filas] + [(2025, *HORARIO_SECCION.filas[0])]
+    gateway = GatewayFalso(procedimientos={"sp_reporte_01_horario_seccion": Resultado(columnas, filas)})
+    grilla = ServicioHorarios(gateway, gateway).horario_seccion(5)
+    assert grilla.titulo.endswith("Periodo 2026")
+    assert len(grilla.bloques(("08:00", "08:45"), "Lunes")) == 1

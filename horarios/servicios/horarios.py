@@ -59,6 +59,16 @@ def registros(resultado: Resultado) -> list[dict[str, Any]]:
     return [dict(zip(resultado.columnas, fila)) for fila in resultado.filas]
 
 
+def del_ultimo_periodo(filas: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], str]:
+    """Deja solo las filas del periodo más reciente (si hay columna Periodo)
+    para no mezclar horarios de años distintos en la misma grilla."""
+    periodos = {f["Periodo"] for f in filas if f.get("Periodo") is not None}
+    if not periodos:
+        return filas, ""
+    ultimo = max(periodos)
+    return [f for f in filas if f.get("Periodo") == ultimo], f" · Periodo {ultimo}"
+
+
 class ServicioHorarios:
     def __init__(self, procedimientos: LectorProcedimientos, tablas: LectorTablas):
         self._procedimientos = procedimientos
@@ -85,10 +95,11 @@ class ServicioHorarios:
     # --- Grillas -----------------------------------------------------------
     def horario_seccion(self, id_seccion: int) -> Grilla:
         filas = registros(self._procedimientos.consultar("sp_reporte_01_horario_seccion", (id_seccion,)))
+        filas, periodo = del_ultimo_periodo(filas)
         titulo = f"Sección {id_seccion}"
         if filas:
             f = filas[0]
-            titulo = f"{f['Grado']} {f['Nivel']} - Sección {f['Seccion']}"
+            titulo = f"{f['Grado']} {f['Nivel']} - Sección {f['Seccion']}{periodo}"
         return armar_grilla(titulo, filas, lambda f: Bloque(
             titulo=f["Asignatura"] if f["Naturaleza"] == "Clase" else f["Naturaleza"],
             detalle=f["Espacio"],
@@ -97,7 +108,8 @@ class ServicioHorarios:
 
     def horario_docente(self, dni: str) -> Grilla:
         filas = registros(self._procedimientos.consultar("sp_reporte_02_carga_docente", (dni,)))
-        titulo = f"Docente {filas[0]['Docente']}" if filas else f"Docente {dni}"
+        filas, periodo = del_ultimo_periodo(filas)
+        titulo = f"Docente {filas[0]['Docente']}{periodo}" if filas else f"Docente {dni}"
         def a_bloque(f: Fila) -> Bloque:
             tiene_materia = f["Asignatura"] != "—"
             return Bloque(
@@ -110,8 +122,9 @@ class ServicioHorarios:
     def horario_espacio(self, denominacion: str) -> Grilla:
         actividades = [a for a in registros(self._tablas.listar("Actividad", "ORDER BY Hora_Inicio"))
                        if a["Espacio"] == denominacion]
-        return armar_grilla(f"Espacio {denominacion}", actividades, lambda a: Bloque(
+        actividades, periodo = del_ultimo_periodo(actividades)
+        return armar_grilla(f"Espacio {denominacion}{periodo}", actividades, lambda a: Bloque(
             titulo=a["Materia_Asignatura"] or a["Naturaleza"],
-            detalle=f"Periodo {a['Periodo']} · Actividad {a['ID_Actividad']}",
+            detalle=f"Actividad {a['ID_Actividad']}",
             es_clase=a["Naturaleza"] == "Clase",
         ))

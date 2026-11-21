@@ -6,3 +6,7 @@ venv/
 .env
 .vscode/
 .idea/
+dist/
+build/
+*.spec
+entrega/

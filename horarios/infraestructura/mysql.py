@@ -38,6 +38,7 @@ class ProveedorConexionMySQL:
                 charset=self._config.charset,
                 collation=self._config.collation,
                 use_unicode=True,
+                ssl_disabled=not self._config.ssl,
             )
         except Error as err:
             raise ErrorConexion(err.msg, err.errno) from err

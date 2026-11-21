@@ -36,8 +36,9 @@ La primera vez MySQL ejecuta automáticamente, en orden, los scripts de `databas
 La imagen de la BD (`database/Dockerfile`) copia esos scripts y fuerza UTF-8, para que las
 tildes y el símbolo `°` se guarden bien también desde Windows.
 
-> En los datos de prueba, las secciones con horario cargado son la **5** (3.° A primaria)
-> y la **15**: úsalas para ver un horario completo.
+> Los datos de prueba simulan un colegio completo: 25 secciones, 42 docentes y 789 actividades
+> sin cruces (horario semanal de las 22 secciones de primaria y secundaria). Se generan con
+> `database/generador/generar_datos_prueba.py`.
 
 | Acción | Comando |
 |---|---|
@@ -46,6 +47,23 @@ tildes y el símbolo `°` se guarden bien también desde Windows.
 | Detener todo | `docker compose down` |
 | Borrar la BD y recargar los scripts desde cero | `docker compose down -v` |
 | Conectarse con MySQL Workbench al contenedor | host `localhost`, puerto `3307`, usuario `app_horarios` |
+
+## Versión portable para Windows (sin instalar nada)
+
+Para entregar el sistema a alguien que no tiene Docker, Python ni MySQL:
+
+```bash
+pip install -r requirements-dev.txt
+python empaquetado/construir_portable.py      # genera dist/HorariosEsclavas.zip (~45 MB)
+```
+
+Quien lo recibe descomprime el `.zip` y hace doble clic en **`Iniciar.bat`**: se arranca un
+MySQL portátil, la primera vez se crea la base con `database/init/*.sql` y se abre el navegador.
+Al cerrar la ventana se apaga todo. Detalles en `empaquetado/LEEME.txt`.
+
+La carpeta **no incluye ningún ejecutable sin firma digital** (Python oficial firmado por la
+PSF, MySQL firmado por Oracle, runtime VC++ de Microsoft, conector MySQL en Python puro), por lo
+que funciona aun con *Smart App Control* de Windows 11 activo.
 
 ## Ejecución local (sin Docker)
 
@@ -73,6 +91,11 @@ la app la pide al iniciar (no se guarda en el código).
 | `DB_PASSWORD` | *(se pide por consola)* |
 | `DB_NAME` | `bd_horarios_esclavas` |
 
+## Documentación
+
+- [Memoria descriptiva](docs/Memoria_Descriptiva.docx)
+- [Manual de usuario](docs/Manual_de_Usuario.docx)
+
 ## Pruebas
 
 ```bash
@@ -93,6 +116,7 @@ horarios/
 ├── __main__.py              python -m horarios
 ├── bootstrap.py             Raíz de composición: crea e inyecta las dependencias
 ├── config.py                Configuración desde variables de entorno
+├── portable.py              Entrada de la versión portable (Iniciar.bat)
 ├── dominio/                 Núcleo, sin dependencias externas
 │   ├── campos.py            Tipos de dato y su validación (Entero, Texto, Opción, Hora)
 │   ├── modelos.py           Entidad, Operacion, Reporte (definiciones declarativas)
@@ -107,7 +131,8 @@ horarios/
 │   ├── horarios.py          ServicioHorarios: arma la grilla semanal
 │   └── reportes.py          ServicioReportes
 ├── infraestructura/
-│   └── mysql.py             Único módulo que conoce mysql-connector
+│   ├── mysql.py             Único módulo que conoce mysql-connector
+│   └── mysql_portable.py    Arranca/apaga el MySQL de la versión portable
 ├── web/                     Interfaz gráfica (biblioteca estándar)
 │   ├── peticiones.py        Peticion, Respuesta, Enrutador
 │   ├── controladores.py     Inicio, Tablas (CRUD genérico), Reportes, Horarios

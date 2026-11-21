@@ -99,11 +99,16 @@ def construir_web(gateway) -> Enrutador:
 
 
 def iniciar_web(proveedor: ProveedorConexionMySQL, consola: Consola) -> None:
-    host = os.environ.get("WEB_HOST", "127.0.0.1")
-    puerto = int(os.environ.get("WEB_PORT", 8000))
+    servir_web(proveedor, consola,
+               host=os.environ.get("WEB_HOST", "127.0.0.1"),
+               puerto=int(os.environ.get("WEB_PORT", 8000)))
+
+
+def servir_web(proveedor: ProveedorConexionMySQL, consola: Consola, host: str, puerto: int) -> None:
     servidor = crear_servidor(construir_web(GatewayMySQL(proveedor)), host, puerto)
     url = f"http://localhost:{puerto}"
-    consola.mostrar(f"Interfaz gráfica disponible en {url}  (Ctrl+C para detener)")
+    consola.mostrar(f"\nListo. El sistema está abierto en {url}")
+    consola.mostrar("(Si el navegador no se abrió solo, copia esa dirección en tu navegador.)")
     if os.environ.get("ABRIR_NAVEGADOR", "1") != "0":
         webbrowser.open(url)
     try:

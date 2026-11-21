@@ -20,6 +20,7 @@ class ConfiguracionBD:
     base_datos: str = "bd_horarios_esclavas"
     charset: str = "utf8mb4"
     collation: str = "utf8mb4_spanish_ci"
+    ssl: bool = True   # el modo portable (127.0.0.1) lo desactiva
 
     @classmethod
     def desde_entorno(cls, entorno: Mapping[str, str] = os.environ) -> "ConfiguracionBD":

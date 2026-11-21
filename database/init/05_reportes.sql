@@ -12,7 +12,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_reporte_01_horario_seccion $$
 CREATE PROCEDURE sp_reporte_01_horario_seccion(IN p_id_seccion INT)
 BEGIN
-    SELECT ge.Nombre AS Grado, ge.Nivel, s.Letra_Identificadora AS Seccion,
+    SELECT a.Periodo, ge.Nombre AS Grado, ge.Nivel, s.Letra_Identificadora AS Seccion,
            a.Dia, a.Hora_Inicio, a.Hora_Fin, a.Naturaleza,
            COALESCE(a.Materia_Asignatura, '—') AS Asignatura, a.Espacio
       FROM Seccion_Periodo sp
@@ -20,20 +20,20 @@ BEGIN
       JOIN Seccion s ON s.ID_Seccion = sp.ID_Seccion
       JOIN Grado_Escolar ge ON ge.ID_Grado = s.ID_Grado
      WHERE sp.ID_Seccion = p_id_seccion
-     ORDER BY FIELD(a.Dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), a.Hora_Inicio;
+     ORDER BY a.Periodo DESC, FIELD(a.Dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), a.Hora_Inicio;
 END $$
 
 -- R2. Carga horaria semanal de un docente (JOIN: Docente_Actividad + Actividad + Docente)
 DROP PROCEDURE IF EXISTS sp_reporte_02_carga_docente $$
 CREATE PROCEDURE sp_reporte_02_carga_docente(IN p_dni CHAR(8))
 BEGIN
-    SELECT d.Nombre AS Docente, a.Dia, a.Hora_Inicio, a.Hora_Fin,
+    SELECT a.Periodo, d.Nombre AS Docente, a.Dia, a.Hora_Inicio, a.Hora_Fin,
            COALESCE(a.Materia_Asignatura,'—') AS Asignatura, da.Rol_Asumido, a.Espacio
       FROM Docente_Actividad da
       JOIN Actividad a ON a.ID_Actividad = da.ID_Actividad
       JOIN Docente d ON d.DNI = da.DNI_Docente
      WHERE da.DNI_Docente = p_dni
-     ORDER BY FIELD(a.Dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), a.Hora_Inicio;
+     ORDER BY a.Periodo DESC, FIELD(a.Dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), a.Hora_Inicio;
 END $$
 
 -- R3. Docentes especializados en una asignatura (JOIN: Especializado_En + Docente + Asignatura)
@@ -108,19 +108,27 @@ BEGIN
      ORDER BY ge.ID_Grado, s.Letra_Identificadora;
 END $$
 
--- R9. Horas exigidas (plan de estudios) vs. bloques de clase realmente programados, por asignatura
---     (JOIN: Grado_Materia + Asignatura + Actividad)
+-- R9. Horas exigidas (plan de estudios x secciones) vs. bloques de clase realmente programados
+--     (JOIN: Asignatura + Grado_Materia + Seccion + Actividad + Seccion_Periodo).
+--     Cada lado se agrega en su propia subconsulta para no multiplicar filas.
 DROP PROCEDURE IF EXISTS sp_reporte_09_horas_exigidas_vs_programadas $$
 CREATE PROCEDURE sp_reporte_09_horas_exigidas_vs_programadas(IN p_anio SMALLINT)
 BEGIN
     SELECT asg.Nombre_Materia AS Asignatura,
-           SUM(gm.Horas_Exigidas) AS Horas_Exigidas_Plan_Estudios,
-           COUNT(DISTINCT a.ID_Actividad) AS Bloques_Programados
+           COALESCE(pl.Horas, 0) AS Horas_Exigidas_Plan_Estudios,
+           COALESCE(pr.Bloques, 0) AS Bloques_Programados,
+           COALESCE(pr.Bloques, 0) - COALESCE(pl.Horas, 0) AS Diferencia
       FROM Asignatura asg
-      LEFT JOIN Grado_Materia gm ON gm.Nombre_Asignatura = asg.Nombre_Materia
-      LEFT JOIN Actividad a ON a.Materia_Asignatura = asg.Nombre_Materia AND a.Periodo = p_anio
-     GROUP BY asg.Nombre_Materia
-     ORDER BY Horas_Exigidas_Plan_Estudios DESC;
+      LEFT JOIN (SELECT gm.Nombre_Asignatura, SUM(gm.Horas_Exigidas) AS Horas
+                   FROM Grado_Materia gm
+                   JOIN Seccion s ON s.ID_Grado = gm.ID_Grado
+                  GROUP BY gm.Nombre_Asignatura) pl ON pl.Nombre_Asignatura = asg.Nombre_Materia
+      LEFT JOIN (SELECT a.Materia_Asignatura, COUNT(*) AS Bloques
+                   FROM Actividad a
+                   JOIN Seccion_Periodo sp ON sp.ID_Actividad = a.ID_Actividad
+                  WHERE a.Periodo = p_anio AND a.Naturaleza = 'Clase'
+                  GROUP BY a.Materia_Asignatura) pr ON pr.Materia_Asignatura = asg.Nombre_Materia
+     ORDER BY Horas_Exigidas_Plan_Estudios DESC, Asignatura;
 END $$
 
 -- R10. Bitácora de los últimos cambios registrados (sin JOIN; auditoría)

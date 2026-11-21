@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest>=8.0
+# Para armar la versión portable (empaquetado/construir_portable.py)
+pefile>=2023.2.7
