@@ -11,11 +11,15 @@ from horarios.dominio.puertos import Resultado
 
 
 class GatewayFalso:
-    def __init__(self, rechazar_con: str | None = None, resultado: Resultado | None = None):
+    def __init__(self, rechazar_con: str | None = None, resultado: Resultado | None = None,
+                 tablas: dict[str, Resultado] | None = None,
+                 procedimientos: dict[str, Resultado] | None = None):
         self.llamadas: list[tuple[str, tuple]] = []
         self.listados: list[tuple[str, str]] = []
         self._rechazar_con = rechazar_con
         self._resultado = resultado or Resultado(["col"], [("valor",)])
+        self._tablas = tablas or {}
+        self._procedimientos = procedimientos or {}
 
     def ejecutar(self, procedimiento, parametros):
         self.llamadas.append((procedimiento, tuple(parametros)))
@@ -24,11 +28,11 @@ class GatewayFalso:
 
     def consultar(self, procedimiento, parametros):
         self.llamadas.append((procedimiento, tuple(parametros)))
-        return self._resultado
+        return self._procedimientos.get(procedimiento, self._resultado)
 
     def listar(self, tabla, orden=""):
         self.listados.append((tabla, orden))
-        return self._resultado
+        return self._tablas.get(tabla, self._resultado)
 
 
 class ConsolaFalsa:

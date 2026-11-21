@@ -22,8 +22,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Construir imágenes (app y base de datos)
         run: docker compose build
-      - name: Levantar MySQL y cargar los scripts
-        run: docker compose up -d --wait db
+      - name: Levantar MySQL (con los scripts) y la interfaz web
+        run: docker compose up -d --wait
+      - name: Probar la interfaz web
+        run: |
+          for i in $(seq 1 15); do curl -sf http://localhost:8000/ >/dev/null && break; sleep 2; done
+          curl -sf "http://localhost:8000/horarios?seccion=5" | grep -q "Sección A"
+          curl -sf "http://localhost:8000/tablas/grado_escolar" | grep -q "Grado_Escolar"
+          curl -sf "http://localhost:8000/reportes/7?generar=1" | grep -q "<table>"
       - name: Verificar procedimientos y datos
         run: |
           docker compose exec -T db sh -c 'mysql -uapp_horarios -phorarios2026 bd_horarios_esclavas -e "
@@ -32,6 +38,6 @@ jobs:
             CALL sp_reporte_07_docentes_condicion_especial();"'
       - name: Logs si algo falla
         if: failure()
-        run: docker compose logs db
+        run: docker compose logs
       - run: docker compose down -v
         if: always()

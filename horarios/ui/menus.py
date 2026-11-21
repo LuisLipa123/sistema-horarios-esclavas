@@ -55,7 +55,7 @@ class Pantalla(ABC):
             pass
 
     def _informar_error(self, err: ErrorBaseDatos) -> None:
-        self._consola.mostrar(f"✘ La base de datos rechazó la operación: {err.mensaje}")
+        self._consola.mostrar(f"Error: la base de datos rechazó la operación: {err.mensaje}")
 
 
 class PantallaCrud(Pantalla):
@@ -88,7 +88,7 @@ class PantallaCrud(Pantalla):
             valores = self._formulario.completar(operacion.campos)
             try:
                 self._servicio.ejecutar(operacion, valores)
-                self._consola.mostrar(f"✔ {operacion.mensaje_exito}")
+                self._consola.mostrar(f"OK: {operacion.mensaje_exito}")
             except ErrorBaseDatos as err:
                 self._informar_error(err)
         return ejecutar
@@ -123,7 +123,7 @@ class PantallaReportes(Pantalla):
                 self._consola.mostrar()
                 self._consola.mostrar(formatear_tabla(resultado))
             except ErrorBaseDatos as err:
-                self._consola.mostrar(f"✘ Error al generar el reporte: {err.mensaje}")
+                self._consola.mostrar(f"Error al generar el reporte: {err.mensaje}")
             self._consola.leer("\nPresiona Enter para continuar...")
         return generar
 

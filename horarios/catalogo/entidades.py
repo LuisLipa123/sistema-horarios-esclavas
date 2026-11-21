@@ -148,7 +148,8 @@ def _campos_actividad(prefijo: str) -> tuple:
         CampoHora("hora_fin", f"{nueva}Hora de fin".capitalize()),
         CampoOpcion("dia", f"{nuevo}Día".capitalize(), opciones=v.DIAS),
         CampoOpcion("naturaleza", f"{nueva}Naturaleza".capitalize(), opciones=v.NATURALEZAS),
-        CampoTexto("asignatura", f"{nueva}Asignatura".capitalize(), visible_si=_es_clase),
+        CampoTexto("asignatura", f"{nueva}Asignatura".capitalize(), visible_si=_es_clase,
+                   ayuda="Solo si la naturaleza es Clase"),
         CampoEntero("anio", f"{nuevo}Año lectivo (periodo)".capitalize()),
         CampoTexto("espacio", f"{nuevo}Espacio (denominación exacta)".capitalize()),
     )

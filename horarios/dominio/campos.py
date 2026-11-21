@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 Condicion = Callable[[Mapping[str, Any]], bool]
 
@@ -28,6 +28,7 @@ class Campo(ABC):
     # Si se define, el campo solo se pide cuando la condición es verdadera
     # (recibe los valores ya ingresados). Si no se pide, su valor es None.
     visible_si: Condicion | None = field(default=None, compare=False)
+    ayuda: str = ""
 
     def es_visible(self, valores: Mapping[str, Any]) -> bool:
         return self.visible_si is None or self.visible_si(valores)
@@ -47,6 +48,22 @@ class Campo(ABC):
 
     @abstractmethod
     def convertir(self, texto: str) -> Any: ...
+
+
+def procesar_campos(campos: Sequence[Campo], textos: Mapping[str, str]) -> dict[str, Any]:
+    """Valida de una sola vez los textos de un formulario (p. ej. web).
+    Los campos no visibles se envían como None. Lanza ValorInvalido
+    indicando qué campo falló."""
+    valores: dict[str, Any] = {}
+    for campo in campos:
+        if not campo.es_visible(valores):
+            valores[campo.nombre] = None
+            continue
+        try:
+            valores[campo.nombre] = campo.procesar(textos.get(campo.nombre, ""))
+        except ValorInvalido as err:
+            raise ValorInvalido(f"{campo.etiqueta}: {err}") from None
+    return valores
 
 
 @dataclass(frozen=True)

@@ -37,8 +37,13 @@ services:
       DB_USER: ${DB_USER:-app_horarios}
       DB_PASSWORD: ${DB_PASSWORD:-horarios2026}
       DB_NAME: bd_horarios_esclavas
-    stdin_open: true
-    tty: true
+      WEB_HOST: 0.0.0.0
+      WEB_PORT: 8000
+      ABRIR_NAVEGADOR: "0"
+    ports:
+      # Interfaz gráfica: abrir http://localhost:8000
+      - "${WEB_HOST_PORT:-8000}:8000"
+    restart: unless-stopped
 
 volumes:
   db_data:
